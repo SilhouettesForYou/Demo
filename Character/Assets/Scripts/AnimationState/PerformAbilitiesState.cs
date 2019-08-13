@@ -30,12 +30,17 @@ namespace Demo
             frozenEffect = owner.transform.Find("Frozen").gameObject;
             frozenEffect.SetActive(true);
             // place the ice block
-            if (!iceFlag)
+            if (!iceFlag && !owner.isPerformSkilUnderWater)
                 owner.PlaceIceBlock();
+            else if (!iceFlag && owner.isPerformSkilUnderWater)
+                owner.PlaceIceCubeUnderWater();
             iceFlag = true;
             owner.isPerformSkill = false;
             owner.StartCoroutine(PerformDuration());
-            owner.StateMachine.ChangeState(PlayerIdleState.Instance);
+            if (owner.isPerformSkilUnderWater)
+                owner.StateMachine.ChangeState(PlayerSwinState.Instance);
+            else
+                owner.StateMachine.ChangeState(PlayerIdleState.Instance);
         }
 
         public override void Exit()

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Demo
 {
@@ -26,7 +24,15 @@ namespace Demo
 
         public override void Excute()
         {
-            
+            owner.MoveHorizontally();
+
+            // check if player is going to perform the skill under water.
+            owner.IdleToPerfoemSkillUnderWater();
+
+            if (owner.isPerformSkilUnderWater == true && Input.GetKeyDown(KeyCode.E))
+            {
+                owner.StateMachine.ChangeState(PerformAbilitiesState.Instance);
+            }
         }
 
         public override void Exit()

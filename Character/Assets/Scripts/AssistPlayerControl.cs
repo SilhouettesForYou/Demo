@@ -21,6 +21,7 @@ namespace Demo
         public PlayerInfo playerInfo;
 
         public GameObject iceCube;
+        public GameObject iceCubeCell;
 
         //[HideInInspector]
         //public Control control;
@@ -42,6 +43,8 @@ namespace Demo
         public Transform waterSideLeft;
         [HideInInspector]
         public Transform waterSideRight;
+        [HideInInspector]
+        public Transform underWaterBottom;
 
         [HideInInspector]
         public bool isJump = false;
@@ -53,6 +56,8 @@ namespace Demo
         public bool dragableOrPushable = false;
         [HideInInspector]
         public bool isPerformSkill = false;
+        [HideInInspector]
+        public bool isPerformSkilUnderWater = false;
         [HideInInspector]
         public bool isHurt = false;
         [HideInInspector]
@@ -76,12 +81,14 @@ namespace Demo
         private readonly float interactiveRadius = 0.5f;
         private readonly float boxDropRadius = 0.3f;
         private readonly float waterSideRadius = 0.1f;
-        private readonly float iceCubeMass = 20;
         private readonly float offsetOfIceCube = 0.05f;
+        private readonly float offsetOfScaleIceCube = 0.1f;
         private int[] numOfIceCubes = { 2, 3 };
         private int numOfIceCube = 2;
+        private float lengthOfCubeCell;
         private GameObject water;
         private Transform lastIceCube;
+
 
         public void Awake()
         {
@@ -92,6 +99,13 @@ namespace Demo
             groundCheck = transform.Find("GroundCheck");
             ladderCheck = transform.Find("LadderCheck");
             interactiveCehck = transform.Find("InteractiveCheck");
+
+
+            Vector3 left = iceCubeCell.transform.Find("LeftSide").position;
+            Vector3 right = iceCubeCell.transform.Find("RightSide").position;
+            lengthOfCubeCell = Vector3.Distance(left, right);
+
+            UnderWater.changeStateToSwim += ChangeStateToSwim;
         }
 
         public void start()
@@ -111,6 +125,11 @@ namespace Demo
             //animator.SetBool("isLadderTop", isLadderTop);
             //animator.SetBool("isCrouch", isCrouch);
             //animator.SetBool("isEnding", isPassLevel);
+        }
+
+        public void ChangeStateToSwim()
+        {
+            StateMachine.ChangeState(PlayerSwinState.Instance);
         }
 
         public void IsGrounded(string lable = " ")
@@ -320,7 +339,61 @@ namespace Demo
             go.transform.parent = parent;
             lastIceCube = go.transform;
         }
- 
+
+        /// <summary>
+        /// Check if player is under water.
+        /// </summary>
+        public void IdleToPerfoemSkillUnderWater()
+        {
+            Vector3 endPoint = interactiveCehck.position + Vector3.up;
+            Debug.DrawRay(interactiveCehck.position, Vector3.up, Color.red);
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius, playerInfo.water);
+            string[] names = new string[colliders.Length];
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                names[i] = colliders[i].name;
+            }
+            int bottomId = Array.IndexOf(names, "Bottom");
+            int iceCubeId = Array.IndexOf(names, "IceCubeCell(Clone)");
+            
+            if (StateMachine.CurrentState == PlayerSwinState.Instance && bottomId != -1 && iceCubeId == -1)
+            {
+                isPerformSkilUnderWater = true;
+                underWaterBottom = colliders[bottomId].transform;
+            }
+        }
+
+        /// <summary>
+        /// Place the ice cube under water.
+        /// </summary>
+        public void PlaceIceCubeUnderWater()
+        {
+            Transform leftBottom = underWaterBottom.Find("AncherLeftBottom");
+            Transform rightBottom = underWaterBottom.Find("AncherRightBottom");
+
+            float lengthOfIceCube = Vector3.Distance(leftBottom.position, rightBottom.position) / 3;
+            Debug.Log(Math.Abs(lengthOfCubeCell - lengthOfIceCube));
+            float scaleX = lengthOfIceCube / lengthOfCubeCell - offsetOfScaleIceCube;
+            iceCubeCell.transform.localScale = new Vector3(scaleX, 1, 1);
+
+            // There are three segment to place the ice cube.
+            if (transform.position.x > leftBottom.position.x && transform.position.x < leftBottom.position.x + lengthOfIceCube)
+            {
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                LoadIceCube(iceCubeCell, underWaterBottom, iceCubeCenter);
+            }
+            else if (transform.position.x > leftBottom.position.x + lengthOfIceCube && transform.position.x < leftBottom.position.x + 2 * lengthOfIceCube)
+            {
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 3 * lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                LoadIceCube(iceCubeCell, underWaterBottom, iceCubeCenter);
+            }
+            else if (transform.position.x > leftBottom.position.x + 2 * lengthOfIceCube && transform.position.x < rightBottom.position.x)
+            {
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 5 * lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                LoadIceCube(iceCubeCell, underWaterBottom, iceCubeCenter);
+            }
+            iceCubeCell.transform.localScale = new Vector3(1, 1, 1);
+        }
 
 
         /// <summary>
@@ -331,7 +404,7 @@ namespace Demo
             float moveFactor = 1;
 
             // 
-            if (StateMachine.CurrentState == PlayerRunState.Instance)
+            if (StateMachine.CurrentState == PlayerRunState.Instance || StateMachine.CurrentState == PlayerJumpState.Instance)
             {
                 moveFactor = 1;
             }
@@ -341,7 +414,7 @@ namespace Demo
             }
             else if (StateMachine.CurrentState == PlayerSwinState.Instance)
             {
-
+                moveFactor = playerInfo.crouchSpeedFactor;
             }
 
             if (Input.GetKey(KeyCode.A))

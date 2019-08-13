@@ -25,13 +25,13 @@ namespace Demo
 
         public override void Excute()
         {
-            // Check if player is going to climb down on the ground above the ladder
+            // Check if player is going to climb down on the ground above the ladder.
             owner.GroundDownToClimb();
-            // check if player is on the ground
+            // check if player is on the ground.
             owner.IsGrounded();
-            // check if player is going to do the movement of dragging or pushing
+            // check if player is going to do the movement of dragging or pushing.
             owner.IdleToDragOrPush();
-            // check if player is going to perfoem the skill
+            // check if player is going to perform the skill.
             owner.IdleToPerfoemSkill();
             // change state
             if (!owner.isPassLevel)

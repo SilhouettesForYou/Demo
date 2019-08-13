@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerName: An'
   maxSpeed: 5
-  jumpForce: 1800
+  jumpForce: 800
   dragOrPushSpeed: 3
   crouchSpeedFactor: 0.5
   climbSpeed: 4
