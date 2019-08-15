@@ -20,6 +20,7 @@ namespace Demo
         void Start()
         {
             player = FindObjectOfType<AssistPlayerControl>().transform;
+            minX = player.transform.position.x;
         }
 
         // Update is called once per frame

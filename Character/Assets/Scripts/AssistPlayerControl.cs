@@ -40,10 +40,6 @@ namespace Demo
         [HideInInspector]
         public Transform ladderTriggle;
         [HideInInspector]
-        public Transform waterSideLeft;
-        [HideInInspector]
-        public Transform waterSideRight;
-        [HideInInspector]
         public Transform underWaterBottom;
 
         [HideInInspector]
@@ -72,6 +68,8 @@ namespace Demo
         public bool isLadderTop = false;
         [HideInInspector]
         public bool isFacingRight = true;
+        [HideInInspector]
+        public bool isAttack = false;
 
         private Transform groundCheck;
         private readonly float groundRadius = 0.1f;
@@ -81,14 +79,13 @@ namespace Demo
         private readonly float interactiveRadius = 0.5f;
         private readonly float boxDropRadius = 0.3f;
         private readonly float waterSideRadius = 0.1f;
-        private readonly float offsetOfIceCube = 0.05f;
+        private readonly float offsetOfIceCubeTwo = 0.1f;
         private readonly float offsetOfScaleIceCube = 0.1f;
-        private int[] numOfIceCubes = { 2, 3 };
-        private int numOfIceCube = 2;
         private float lengthOfCubeCell;
-        private GameObject water;
+        private Transform water;
         private Transform lastIceCube;
-
+        private enum IceCubePosition { left, right };
+        IceCubePosition placedIceCubePos;
 
         public void Awake()
         {
@@ -106,6 +103,7 @@ namespace Demo
             lengthOfCubeCell = Vector3.Distance(left, right);
 
             UnderWater.changeStateToSwim += ChangeStateToSwim;
+            TouchWater.changeStateToSwim += ChangeStateToSwim;
         }
 
         public void start()
@@ -116,11 +114,11 @@ namespace Demo
         public void FixedUpdate()
         {
             StateMachine.StateMacheUpdate();
-
             animator.SetFloat("SpeedOfX", Mathf.Abs(rigid.velocity.x));
-            //animator.SetFloat("SpeedOfY", speedOfY);
-            //animator.SetBool("isGrounded", isGrounded);
-            //animator.SetBool("isJump", isJump);
+            animator.SetFloat("SpeedOfY", rigid.velocity.y);
+            animator.SetBool("Ground", isGrounded);
+            animator.SetBool("Jump", isJump);
+            animator.SetBool("Attack", isAttack);
             //animator.SetBool("isClimb", isClimb);
             //animator.SetBool("isLadderTop", isLadderTop);
             //animator.SetBool("isCrouch", isCrouch);
@@ -146,6 +144,8 @@ namespace Demo
                 }
             }
         }
+
+
         /// <summary>
         /// Check that the down arrow is pushed on condition that the player is on the ground to climb down the ladder.
         /// </summary>
@@ -259,7 +259,9 @@ namespace Demo
             else
                 direction = Vector3.left * Mathf.Sqrt(3) + Vector3.down;
             Vector3 endPoint = interactiveCehck.position + direction;
+
             Debug.DrawRay(interactiveCehck.position, direction, Color.black);
+
             Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius, playerInfo.water);
             string[] names = new string[colliders.Length];
             for (int i = 0; i < colliders.Length; i++)
@@ -269,13 +271,7 @@ namespace Demo
             // Set trigger of perform skill only "Bottom" been detected.
             if (bottomId != -1 && colliders.Length == 1)
             {
-                if (colliders[bottomId].transform.parent.name == "Water-Small")
-                    numOfIceCube = numOfIceCubes[0];
-                if (colliders[bottomId].transform.parent.name == "Water-Big")
-                    numOfIceCube = numOfIceCubes[1];
-                water = colliders[bottomId].gameObject;
-                waterSideLeft = colliders[bottomId].transform.parent.Find("WaterSideLeft");
-                waterSideRight = colliders[bottomId].transform.parent.Find("WaterSideRight");
+                water = colliders[bottomId].transform;
                 isPerformSkill = true;
             }
             else
@@ -290,45 +286,58 @@ namespace Demo
         public void PlaceIceBlock()
         {
             // compute size of ice cube
-            float x1 = waterSideLeft.position.x;
-            float x2 = waterSideRight.position.x;
             Vector3 left = iceCube.transform.Find("LeftSide").position;
             Vector3 right = iceCube.transform.Find("RightSide").position;
-
             float lengthOfIceCube = Vector3.Distance(left, right);
-            float scaleX = (x2 - x1) / (2 * lengthOfIceCube);
-            //iceCube.GetComponent<Rigidbody2D>().mass = iceCubeMass;
 
-            if (water.transform.parent.Find("IceCube(Clone)") == null)
+            // compute the ancher point of water bottom
+            float pixelsPerUnit = water.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
+            float width = water.GetComponent<SpriteRenderer>().sprite.rect.width / pixelsPerUnit;
+            float height = water.GetComponent<SpriteRenderer>().sprite.rect.height / pixelsPerUnit;
+            width *= water.localScale.x;
+            height *= water.localScale.y;
+
+            Vector3 leftTop = new Vector3(water.position.x - width / 2, water.position.y + height / 2, water.position.z);
+            Vector3 rightTop = new Vector3(water.position.x + width / 2, water.position.y + height / 2, water.position.z);
+
+            float lengthOfScaledIceCube = Vector3.Distance(leftTop, rightTop) / 2;
+            float scaleX = lengthOfScaledIceCube / lengthOfIceCube;
+            iceCube.transform.localScale = new Vector3(scaleX, 1, 1);
+
+            if (water.Find("IceCube(Clone)") == null)
             {
                 if (isFacingRight)
                 {
-                    Vector3 iceCubeCenter = new Vector3(waterSideLeft.position.x + (lengthOfIceCube / 2) + offsetOfIceCube, waterSideLeft.position.y, 0);
-                    LoadIceCube(iceCube, water.transform.parent, iceCubeCenter);
+                    Vector3 iceCubeCenter = new Vector3(leftTop.x + (lengthOfScaledIceCube / 2) - offsetOfIceCubeTwo, rightTop.y, 0);
+                    LoadIceCube(iceCube, water, iceCubeCenter);
+                    placedIceCubePos = IceCubePosition.left;
 
-                    Debug.DrawRay(waterSideLeft.position, waterSideLeft.position - waterSideLeft.localPosition, Color.red);
                 }
                 else
                 {
-                    Vector3 iceCubeCenter = new Vector3(waterSideLeft.position.x - (lengthOfIceCube / 2) - offsetOfIceCube, waterSideLeft.position.y, 0);
-                    LoadIceCube(iceCube, water.transform, iceCubeCenter);
+                    Vector3 iceCubeCenter = new Vector3(rightTop.x - (lengthOfScaledIceCube / 2) + offsetOfIceCubeTwo, rightTop.y, 0);
+                    LoadIceCube(iceCube, water, iceCubeCenter);
+                    placedIceCubePos = IceCubePosition.right;
                 }
             }
             else
             {
-                float xCenter;
-                if (isFacingRight)
+                if (placedIceCubePos == IceCubePosition.left)
                 {
-                    xCenter = lastIceCube.Find("RightSide").transform.position.x + (lengthOfIceCube / 2);
+                    float xCenter = lastIceCube.Find("RightSide").transform.position.x + (lengthOfScaledIceCube / 2) + offsetOfIceCubeTwo;
+                    Vector3 iceCubeCenter = new Vector3(xCenter, rightTop.y, 0);
+                    LoadIceCube(iceCube, water, iceCubeCenter);
+                    placedIceCubePos = IceCubePosition.right;
                 }
-                else
+                else if (placedIceCubePos == IceCubePosition.right)
                 {
-                    xCenter = lastIceCube.Find("LeftSide").transform.position.x - +(lengthOfIceCube / 2);
+                    float xCenter = lastIceCube.Find("LeftSide").transform.position.x - (lengthOfScaledIceCube / 2) - offsetOfIceCubeTwo;
+                    Vector3 iceCubeCenter = new Vector3(xCenter, rightTop.y, 0);
+                    LoadIceCube(iceCube, water, iceCubeCenter);
+                    placedIceCubePos = IceCubePosition.left;
                 }
-                
-                Vector3 iceCubeCenter = new Vector3(xCenter, waterSideLeft.position.y, 0);
-                LoadIceCube(iceCube, water.transform.parent, iceCubeCenter);
             }
+            iceCube.transform.localScale = new Vector3(1, 1, 1);
         }
 
         private void LoadIceCube(GameObject prefab, Transform parent, Vector3 iceCubeCenter)
@@ -372,7 +381,6 @@ namespace Demo
             Transform rightBottom = underWaterBottom.Find("AncherRightBottom");
 
             float lengthOfIceCube = Vector3.Distance(leftBottom.position, rightBottom.position) / 3;
-            Debug.Log(Math.Abs(lengthOfCubeCell - lengthOfIceCube));
             float scaleX = lengthOfIceCube / lengthOfCubeCell - offsetOfScaleIceCube;
             iceCubeCell.transform.localScale = new Vector3(scaleX, 1, 1);
 

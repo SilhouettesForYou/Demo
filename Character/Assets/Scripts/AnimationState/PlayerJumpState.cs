@@ -33,9 +33,9 @@ namespace Demo
             }
             else
             {
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.W))
+                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
                 {
-                    owner.StateMachine.ChangeState(PlayerRunState.Instance);
+                    owner.MoveHorizontally();
                 }
             }
 

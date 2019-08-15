@@ -30,7 +30,7 @@ namespace Demo
             {
                 owner.StateMachine.ChangeState(PlayerIdleState.Instance);
             }
-            else if (Input.GetKeyDown(KeyCode.Space))
+            else if (Input.GetKey(KeyCode.Space))
             {
                 owner.StateMachine.ChangeState(PlayerJumpState.Instance);
             }

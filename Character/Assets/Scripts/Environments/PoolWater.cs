@@ -11,11 +11,17 @@ namespace Demo
         public static event TurnOutfallOff turnOff;
 
         private bool done;
-        private bool isTrigger;
+        private bool isInflowTrigger;
         private bool isLeak;
+        private bool isLeakTrigger;
+        private bool isPlayerInWater;
 
+        public PlayerInfo playerInfo;
         private Transform waterBackground;
         private Transform water;
+        private Transform waterSwitch;
+        private Transform drops;
+
         private float pixelsPerUnitBackground;
         private float pixelsPerUnitWater;
         private float widthOfBackground;
@@ -26,20 +32,31 @@ namespace Demo
         private float yOfWaterBottom;
         private Vector3 scaleOfBackground;
         private Vector3 scaleOfWater;
+
         public float deltaOfBackgroundScale = 1f;
         public float deltaOfWaterScale = 2f;
+        public float scaleRate = 0.05f;
+        private float checkRadius = 0.1f;
 
         // Start is called before the first frame update
         void Start()
         {
             // delegate
             MammothControl.turnOn += TurnOutfallOn;
+            UnderWater.setWaterLeak += SetWaterLeak;
 
             done = false;
-            isTrigger = false;
+            isInflowTrigger = false;
+            isLeak = false;
+            isLeakTrigger = false;
+            isPlayerInWater = false;
+
+            // Find some transforms
             Transform p = transform.Find("Water");
             waterBackground = p.Find("W");
             water = p.Find("Bottom");
+            waterSwitch = transform.Find("PipeLeft").Find("Switch");
+            drops = transform.Find("PipeDown").Find("Drops");
 
             // Find the ancher of water background.
             pixelsPerUnitBackground = waterBackground.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
@@ -77,7 +94,7 @@ namespace Demo
         // Update is called once per frame
         void Update()
         {
-            if (isTrigger)
+            if (isInflowTrigger)
             {
                 SurfaceUp(waterBackground, scaleOfBackground, deltaOfBackgroundScale, yOfBackgroundBottom);
                 SurfaceUp(water, scaleOfWater, deltaOfWaterScale, yOfWaterBottom);
@@ -85,8 +102,16 @@ namespace Demo
             }
             if (done)
             {
-                turnOff();
+                isInflowTrigger = false;
+                turnOff(); 
             }
+            if (isLeak && !isLeakTrigger)
+            {
+                SurfaceDown(waterBackground, scaleOfBackground, deltaOfBackgroundScale, scaleRate, yOfBackgroundBottom);
+                SurfaceDown(water, scaleOfWater, deltaOfWaterScale, scaleRate, yOfWaterBottom);
+            }
+            if (isPlayerInWater)
+                CheckSwitchInteractive();
         }
 
         private void SetAncher(Transform parent, float width, float height)
@@ -119,19 +144,54 @@ namespace Demo
             }
         }
 
-        private void SurfaceDown(Transform t, Vector3 originalScale, float delta, float yOfBottom)
+        private void SurfaceDown(Transform t, Vector3 originalScale, float delta, float scaleRate, float yOfBottom)
         {
-
+            Vector3 updatedScale = t.localScale;
+            if (updatedScale.y > 0)
+            {
+                updatedScale.y -= (delta * scaleRate * Time.deltaTime);
+                t.localScale = updatedScale;
+                float y = yOfBottom + (heightOfBackground / originalScale.y) * updatedScale.y / 2;
+                Vector3 pos = new Vector3(t.localPosition.x, y, t.localPosition.z);
+                t.localPosition = pos;
+            }
+            else
+            {
+                isLeak = false;
+            }
         }
 
         private IEnumerator Delay()
         {
             yield return new WaitForSeconds(5.0f);
+            isLeak = true;
+            drops.gameObject.SetActive(true);
+        }
+
+        private void CheckSwitchInteractive()
+        {
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(waterSwitch.position, checkRadius, playerInfo.player);
+            if (colliders.Length == 1 && colliders[0].transform.name == "An'" && Input.GetKey(KeyCode.Q))
+            {
+                isLeakTrigger = true;
+                drops.gameObject.SetActive(false);
+            }
+            else
+            {
+                isLeakTrigger = false;
+                drops.gameObject.SetActive(true);
+            }
         }
 
         private void TurnOutfallOn()
         {
-            isTrigger = true;
+            isInflowTrigger = true;
+        }
+
+        private void SetWaterLeak()
+        {
+            isPlayerInWater = true;
+            StartCoroutine(Delay());
         }
 
     }
