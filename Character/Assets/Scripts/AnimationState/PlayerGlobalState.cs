@@ -1,4 +1,6 @@
-﻿namespace Demo
+﻿using UnityEngine;
+
+namespace Demo
 {
     public class PlayerGlobalState : MachineBehaviourState<AssistPlayerControl>
     {

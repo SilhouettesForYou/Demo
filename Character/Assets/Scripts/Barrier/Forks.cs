@@ -39,6 +39,15 @@ namespace Demo
             }
         }
         // Update is called once per frame
+        void Update()
+        {
+            List<Transform> fs = new List<Transform>(forks.Keys);
+            for (int i = 0; i < fs.Count; i++)
+            {
+                Transform fork = fs[i];
+                CheckForkOnPlayer(fork);
+            }
+        }
         void FixedUpdate()
         {
             time += Time.fixedDeltaTime;
@@ -62,7 +71,6 @@ namespace Demo
                         forks[fork] = true;
                         StartCoroutine(Delay(forkBody));
                     }
-                    CheckForkOnPlayer(fork);
                 }
                 time = 0;
             }
@@ -83,7 +91,8 @@ namespace Demo
             {
                 if (collider.transform.name == "An'")
                 {
-                    Debug.Log("An' has been slain by " + transform.name + ", game over...");
+                    //Debug.Log("An' has been slain by " + fork.name + ", game over...");
+                    EventCenter.Braodcast(EventType.IsAnPrimeDead);
                 }
                 if (collider.transform.name == "An")
                 {

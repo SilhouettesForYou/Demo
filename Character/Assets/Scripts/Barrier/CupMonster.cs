@@ -12,12 +12,6 @@ namespace Demo
 
         private Animator animator;
 
-
-        [HideInInspector]
-        public bool isHurtAnPrime = false;
-        [HideInInspector]
-        public bool isHurtAn = false;
-
         private bool isDead = false;
         private bool isFacingRight = false;
         public bool isMoving = true;
@@ -117,13 +111,12 @@ namespace Demo
             {
                 if (collider.transform.name == "An'")
                 {
-                    Debug.Log("An' has been slain by " + transform.name + ", game over...");
-                    isHurtAnPrime = true;
+                    EventCenter.Braodcast(EventType.IsAnPrimeDead);
+                    //Debug.Log("An' has been slain by " + transform.name + ", game over...");
                 }
                 if (collider.transform.name == "An")
                 {
                     Debug.Log("An has been slain" + transform.name + ", game over...");
-                    isHurtAn = true;
                 }
             }
         }

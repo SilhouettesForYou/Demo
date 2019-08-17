@@ -8,7 +8,8 @@ namespace Demo
         {
             if (collision.transform.name == "An'")
             {
-                Debug.Log("An' has been slain by " + transform.name + ", game over...");
+                EventCenter.Braodcast(EventType.IsAnPrimeDead);
+                //Debug.Log("An' has been slain by " + transform.name + ", game over...");
             }
 
             if (collision.transform.name == "An")

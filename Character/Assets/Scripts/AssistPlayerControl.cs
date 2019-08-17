@@ -101,9 +101,10 @@ namespace Demo
             TouchWater.changeStateToSwim += ChangeStateToSwim;
         }
 
-        public void start()
+        public void Start()
         {
-
+            // Add listener
+            EventCenter.AddListener(EventType.IsAnPrimeDead, CheckAnPrimeDead);
         }
 
         public void FixedUpdate()
@@ -492,6 +493,11 @@ namespace Demo
         {
             GetComponent<SpriteRenderer>().flipX = !GetComponent<SpriteRenderer>().flipX;
             isFacingRight = !isFacingRight;
+        }
+
+        private void CheckAnPrimeDead()
+        {
+            isDead = true;
         }
 
         public void OnPassLevel()
