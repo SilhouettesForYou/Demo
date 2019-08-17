@@ -25,6 +25,14 @@ namespace Demo
         public override void Excute()
         {
             owner.MoveHorizontally();
+
+            owner.IsAttack();
+
+            if (owner.isAttack)
+            {
+                owner.StateMachine.ChangeState(PlayerAttackState.Instance);
+            }
+
             // change state
             if (Mathf.Abs(owner.speedOfX) < 0.1f || Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
             {

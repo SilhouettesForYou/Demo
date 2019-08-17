@@ -16,9 +16,17 @@ namespace Demo
         }
         public override void Enter()
         {
-            owner.rigid.AddForce(owner.playerInfo.jumpForce * Vector2.up);
-            owner.isJump = true;
-            owner.isGrounded = false;
+            if (owner.StateMachine.PreState == PlayerAttackState.Instance)
+            {
+                owner.rigid.AddForce((owner.playerInfo.jumpForce / 10) * Vector2.down);
+            }
+            else
+            {
+                owner.rigid.AddForce(owner.playerInfo.jumpForce * Vector2.up);
+                owner.isJump = true;
+                owner.isGrounded = false;
+            }
+            
         }
 
         public override void Excute()
@@ -26,6 +34,13 @@ namespace Demo
             // check ground
             owner.IsGrounded();
             owner.IsArriveLadderTop();
+            owner.IsAttack();
+
+            if (owner.isAttack)
+            {
+                owner.StateMachine.ChangeState(PlayerAttackState.Instance);
+            }
+
             if (owner.isGrounded)
             {
                 //Debug.Log("Jumpping");

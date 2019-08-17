@@ -19,7 +19,6 @@ namespace Demo
         }
 
         public PlayerInfo playerInfo;
-
         public GameObject iceCube;
         public GameObject iceCubeCell;
 
@@ -55,13 +54,9 @@ namespace Demo
         [HideInInspector]
         public bool isPerformSkilUnderWater = false;
         [HideInInspector]
-        public bool isHurt = false;
-        [HideInInspector]
         public bool isDead = false;
         [HideInInspector]
         public bool isPassLevel = false;
-        [HideInInspector]
-        public bool isPlayHurtAnim = false;
         [HideInInspector]
         public bool isGrounded = true;
         [HideInInspector]
@@ -75,7 +70,7 @@ namespace Demo
         private readonly float groundRadius = 0.1f;
         private Transform ladderCheck;
         private readonly float ladderRadius = 0.6f;
-        private Transform interactiveCehck;
+        private Transform interactiveCheck;
         private readonly float interactiveRadius = 0.5f;
         private readonly float boxDropRadius = 0.3f;
         private readonly float waterSideRadius = 0.1f;
@@ -95,7 +90,7 @@ namespace Demo
 
             groundCheck = transform.Find("GroundCheck");
             ladderCheck = transform.Find("LadderCheck");
-            interactiveCehck = transform.Find("InteractiveCheck");
+            interactiveCheck = transform.Find("InteractiveCheck");
 
 
             Vector3 left = iceCubeCell.transform.Find("LeftSide").position;
@@ -114,6 +109,7 @@ namespace Demo
         public void FixedUpdate()
         {
             StateMachine.StateMacheUpdate();
+            IsAttack();
             animator.SetFloat("SpeedOfX", Mathf.Abs(rigid.velocity.x));
             animator.SetFloat("SpeedOfY", rigid.velocity.y);
             animator.SetBool("Ground", isGrounded);
@@ -218,7 +214,7 @@ namespace Demo
         /// </summary>
         public void IdleToDragOrPush()
         {
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(interactiveCehck.position, interactiveRadius, playerInfo.ground);
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(interactiveCheck.position, interactiveRadius, playerInfo.ground);
             foreach (var item in colliders)
             {
                 if (item.name == "PushableBox")
@@ -258,9 +254,9 @@ namespace Demo
                 direction = Vector3.right * Mathf.Sqrt(3) + Vector3.down;
             else
                 direction = Vector3.left * Mathf.Sqrt(3) + Vector3.down;
-            Vector3 endPoint = interactiveCehck.position + direction;
+            Vector3 endPoint = interactiveCheck.position + direction;
 
-            Debug.DrawRay(interactiveCehck.position, direction, Color.black);
+            Debug.DrawRay(interactiveCheck.position, direction, Color.black);
 
             Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius, playerInfo.water);
             string[] names = new string[colliders.Length];
@@ -354,8 +350,8 @@ namespace Demo
         /// </summary>
         public void IdleToPerfoemSkillUnderWater()
         {
-            Vector3 endPoint = interactiveCehck.position + Vector3.up;
-            Debug.DrawRay(interactiveCehck.position, Vector3.up, Color.red);
+            Vector3 endPoint = interactiveCheck.position + Vector3.up;
+            Debug.DrawRay(interactiveCheck.position, Vector3.up, Color.red);
             Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius, playerInfo.water);
             string[] names = new string[colliders.Length];
             for (int i = 0; i < colliders.Length; i++)
@@ -403,7 +399,27 @@ namespace Demo
             iceCubeCell.transform.localScale = new Vector3(1, 1, 1);
         }
 
-
+        /// <summary>
+        /// Check if player perform attack skill.
+        /// </summary>
+        public void IsAttack()
+        {
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                isAttack = true;
+            }
+        }
+        /// <summary>
+        /// Check if player perform attack skill.
+        /// </summary>
+        public void FireInTheHole()
+        {
+            GameObject go = Instantiate(Resources.Load("Prefabs/ShockWave")) as GameObject;
+            go.transform.parent = transform;
+            go.transform.position = interactiveCheck.position;
+            go.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+            go.transform.GetComponent<Rigidbody2D>().AddForce(Vector3.right * (isFacingRight ? 1 : -1) * 1000);
+        }
         /// <summary>
         /// Control the player move horizontally when the state is "Running State", "Crouching State" or "Swimming State".
         /// </summary>
@@ -487,27 +503,10 @@ namespace Demo
         }
 
         // Play hurt animation when the assist player is hurt
-        public void OnAssistPlayerBeHurt()
+        public void OnAssistPlayerBeHurtToDead()
         {
-            isPlayHurtAnim = true;
-            isHurt = true;
-            StartCoroutine(HurtAnim());
-        }
-
-        private IEnumerator HurtAnim()
-        {
-            Vector4 color = GetComponent<SpriteRenderer>().color;
-            for (int i = 0; i < 20; i++)
-            {
-                if (i % 2 == 0)
-                    color.w = 0.3f;
-                else
-                    color.w = 1f;
-                GetComponent<SpriteRenderer>().color = color;
-                yield return new WaitForSeconds(0.2f);
-            }
-            StopCoroutine(HurtAnim());
-            isPlayHurtAnim = false;
+            Debug.Log("An' is dead, game over...");
+            StopAllCoroutines();
         }
     }
 }

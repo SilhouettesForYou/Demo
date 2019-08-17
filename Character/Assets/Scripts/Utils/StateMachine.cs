@@ -8,6 +8,9 @@ namespace Demo
 {
     public class StateMachine<T>
     {
+        // previous state
+        public MachineBehaviourState<T> PreState { get; private set; }
+
         // current state
         public MachineBehaviourState<T> CurrentState { get; private set; }
 
@@ -34,6 +37,7 @@ namespace Demo
                 throw new System.Exception("Can't find target state.");
             }
             targetState.owner = CurrentState.owner;
+            PreState = CurrentState;
             CurrentState.Exit();
             CurrentState = targetState;
             CurrentState.Enter();

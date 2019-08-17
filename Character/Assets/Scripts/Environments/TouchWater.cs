@@ -12,16 +12,13 @@ namespace Demo
         public PlayerInfo playerInfo;
         private Transform player;
         private Rigidbody2D playerRigibody;
-        private bool isOff;
         private float mass;
-        private float iceCubeRadius = 0.0f;
         private Vector2 direction = Vector2.down * 1;
         private float band = 0.1f;
         private Vector2 boxSize = new Vector2(0.1f, 1.0f);
         // Start is called before the first frame update
         void Start()
         {
-            isOff = true;
             mass = 40;
         }
 
@@ -76,7 +73,6 @@ namespace Demo
             if (collider.transform.name == "An'")
             {
                 player = collider.transform;
-                isOff = false;
             }
         }
 

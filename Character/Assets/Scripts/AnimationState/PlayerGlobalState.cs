@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Demo
+﻿namespace Demo
 {
     public class PlayerGlobalState : MachineBehaviourState<AssistPlayerControl>
     {
@@ -28,9 +22,9 @@ namespace Demo
 
         public override void Excute()
         {
-            if (!owner.isPlayHurtAnim && owner.isHurt)
+            if (owner.isDead)
             {
-                owner.OnAssistPlayerBeHurt();
+                owner.OnAssistPlayerBeHurtToDead();
             }
         }
 

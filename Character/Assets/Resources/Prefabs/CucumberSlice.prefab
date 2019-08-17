@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1690148858697251585}
   - component: {fileID: 1690148858697251590}
   - component: {fileID: 1690148858697251591}
+  - component: {fileID: 6461244699308377923}
   m_Layer: 0
   m_Name: CucumberSlice
   m_TagString: Untagged
@@ -197,3 +198,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
+--- !u!114 &6461244699308377923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1690148858697251588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 632fb6a22f066004288ddeb867d31255, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

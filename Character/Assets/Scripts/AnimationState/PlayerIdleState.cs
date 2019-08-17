@@ -33,9 +33,17 @@ namespace Demo
             owner.IdleToDragOrPush();
             // check if player is going to perform the skill.
             owner.IdleToPerfoemSkill();
+            // check if player is going to perform the attack skill.
+            owner.IsAttack();
+
             // change state
             if (!owner.isPassLevel)
             {
+                if (owner.isAttack)
+                {
+                    owner.StateMachine.ChangeState(PlayerAttackState.Instance);
+                }
+
                 if (owner.dragableOrPushable == true && Input.GetKey(KeyCode.E))
                 {
                     owner.StateMachine.ChangeState(PlayerPushGragState.Instance);
