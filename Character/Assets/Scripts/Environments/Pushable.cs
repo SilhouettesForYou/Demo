@@ -6,94 +6,74 @@ namespace Demo
 {
     public class Pushable : MonoBehaviour
     {
-        public PlayerInfo playerInfo;
-        private Transform leftTrigger;
-        private Transform rightTrigger;
-        private Transform boxGroundCheck;
+        private Transform boxGroundCheckLeft;
+        private Transform boxGroundCheckRight;
         private Rigidbody2D body;
 
-        private float playerRdius = 0.5f;
-        private float groundRadius = 0.5f;
-
-        private bool dragableOrPushable = false;
+        private Rigidbody2D player;
+        private FixedJoint2D joint;
+        private bool isAttached = false;
         private bool isGrounded = true;
 
         void Awake()
         {
             body = transform.GetComponent<Rigidbody2D>();
-            leftTrigger = transform.Find("LeftTrigger");
-            rightTrigger = transform.Find("RightTrigger");
-            boxGroundCheck = transform.Find("BoxGroundCheck");
+            boxGroundCheckLeft = transform.Find("GroundCheckLeft");
+            boxGroundCheckRight = transform.Find("GroundCheckRight");
+            joint = GetComponent<FixedJoint2D>();
+            joint.enabled = false;
+
+            EventCenter.AddListener<bool, Rigidbody2D>(EventType.Attach, CheckPush);
         }
 
         void FixedUpdate()
         {
-            CheckPushing(leftTrigger, playerRdius, playerInfo.player);
-            CheckPushing(rightTrigger, playerRdius, playerInfo.player);
-            if (dragableOrPushable && Input.GetKey(KeyCode.E))
+            if (isAttached)
             {
                 // Release the constrain of X when the box is pushable or dragable, at the same tiem, 'E' pressed.
                 body.constraints &= ~RigidbodyConstraints2D.FreezePositionX;
+                joint.enabled = true;
+                joint.connectedBody = player;
+                joint.connectedAnchor = new Vector2(2.5f, -1.6f);
+                joint.anchor = new Vector2(0f, 0f);
             }
             else
             {
-                //body.constraints &= RigidbodyConstraints2D.FreezeRotation;
-            }
-
-            if (Input.GetKeyUp(KeyCode.E))
-            {
-                // Frezze the constrain of X when 'E' is up.
                 body.constraints |= RigidbodyConstraints2D.FreezePositionX;
-                dragableOrPushable = false;
+                joint.enabled = false;
+                joint.connectedBody = null;
             }
 
-            CheckGround(boxGroundCheck, groundRadius, playerInfo.ground);
+            CheckGround(boxGroundCheckLeft, boxGroundCheckRight);
 
-            if (!isGrounded)
+            if (!isGrounded && !isAttached)
             {
                 // Release the constrain of Y when the box dropping.
                 body.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
                 body.constraints |= RigidbodyConstraints2D.FreezePositionX;
-                //
-            }
-            else
-            {
-                //body.constraints &= RigidbodyConstraints2D.FreezePositionY;
-            }
-            if (!dragableOrPushable && body.velocity.y == 0)
-            {
-                body.constraints |= RigidbodyConstraints2D.FreezeAll;
             }
         }
 
-        private void CheckGround(Transform trigger, float radius, LayerMask mask)
+        private void CheckGround(Transform left, Transform right)
         {
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(trigger.position, radius, mask);
-            //foreach (var item in colliders)
-            //    Debug.Log(item);
-            int id = Array.IndexOf(colliders, GameObject.Find("Ground").GetComponent<Collider2D>());
-            if (id == -1)
+            Vector3 direction = Vector3.down;
+            RaycastHit2D colliderLeft = Physics2D.Raycast(left.position, direction, 1 << LayerMask.NameToLayer("Ground"));
+            RaycastHit2D colliderRight = Physics2D.Raycast(right.position, direction, 1 << LayerMask.NameToLayer("Ground"));
+
+            Debug.DrawRay(left.position, direction, Color.cyan);
+            Debug.DrawRay(right.position, direction, Color.cyan);
+
+            if (colliderLeft.transform != null && colliderRight.transform != null)
             {
                 isGrounded = false;
-                dragableOrPushable = false;
-                body.velocity = Vector2.down * 10;
-            }
-            else
-            {
-                isGrounded = true;
             }
         }
 
-        private void CheckPushing(Transform trigger, float radius, LayerMask mask)
+        public void CheckPush(bool flag, Rigidbody2D body)
         {
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(trigger.position, radius, mask);
-            foreach (var item in colliders)
-            {
-                if (item.transform.name == "An'")
-                {
-                    dragableOrPushable = true;
-                }
-            }
+            isAttached = flag;
+            player = body;
         }
+
     }
 }

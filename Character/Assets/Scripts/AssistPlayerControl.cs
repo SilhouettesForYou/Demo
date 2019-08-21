@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 namespace Demo
 {
@@ -18,6 +18,7 @@ namespace Demo
             }
         }
 
+        private Scene curScence;
         public PlayerInfo playerInfo;
         public GameObject iceCube;
         public GameObject iceCubeCell;
@@ -27,15 +28,15 @@ namespace Demo
         [HideInInspector]
         public Rigidbody2D rigid;
         [HideInInspector]
-        public Rigidbody2D boxRigidbody;
-        [HideInInspector]
-        Transform pushableBox;
+        public Rigidbody2D boxRigid;
         [HideInInspector]
         public Animator animator;
         [HideInInspector]
         public float speedOfX;
         [HideInInspector]
         public float speedOfY;
+        [HideInInspector]
+        public float playerMass;
         [HideInInspector]
         public Transform ladderTriggle;
         [HideInInspector]
@@ -48,8 +49,6 @@ namespace Demo
         [HideInInspector]
         public bool isCrouch = false;
         [HideInInspector]
-        public bool dragableOrPushable = false;
-        [HideInInspector]
         public bool isPerformSkill = false;
         [HideInInspector]
         public bool isPerformSkilUnderWater = false;
@@ -60,11 +59,25 @@ namespace Demo
         [HideInInspector]
         public bool isGrounded = true;
         [HideInInspector]
+        public bool isInWater = false;
+        [HideInInspector]
+        public bool isDiving = false;
+        [HideInInspector]
         public bool isLadderTop = false;
         [HideInInspector]
         public bool isFacingRight = true;
         [HideInInspector]
         public bool isAttack = false;
+        [HideInInspector]
+        public bool isPushing = false;
+        [HideInInspector]
+        public bool isReleaseBox = true;
+        [HideInInspector]
+        public bool frezeeAttack = false;
+        [HideInInspector]
+        public bool frezeeAll = false;
+        [HideInInspector]
+        public bool isCloseToPushable = false;
 
         private Transform groundCheck;
         private readonly float groundRadius = 0.1f;
@@ -72,7 +85,6 @@ namespace Demo
         private readonly float ladderRadius = 0.6f;
         private Transform interactiveCheck;
         private readonly float interactiveRadius = 0.5f;
-        private readonly float boxDropRadius = 0.3f;
         private readonly float waterSideRadius = 0.1f;
         private readonly float offsetOfIceCubeTwo = 0.1f;
         private readonly float offsetOfScaleIceCube = 0.1f;
@@ -82,7 +94,20 @@ namespace Demo
         private enum IceCubePosition { left, right };
         IceCubePosition placedIceCubePos;
 
-        public void Awake()
+        public void OnGUI()
+        {
+            curScence = SceneManager.GetActiveScene();
+            if (curScence.name == "Level-1-1" || curScence.name == "Level-1-2" || curScence.name == "Level-1-3")
+            {
+                frezeeAttack = true;
+            }
+            else
+            {
+                frezeeAttack = false;
+            }
+        }
+
+        void Awake()
         {
             //control = transform.parent.GetComponent<Control>();
             rigid = GetComponent<Rigidbody2D>();
@@ -97,37 +122,55 @@ namespace Demo
             Vector3 right = iceCubeCell.transform.Find("RightSide").position;
             lengthOfCubeCell = Vector3.Distance(left, right);
 
-            UnderWater.changeStateToSwim += ChangeStateToSwim;
-            TouchWater.changeStateToSwim += ChangeStateToSwim;
+            playerMass = rigid.mass;
         }
 
-        public void Start()
+        void Start()
         {
             // Add listener
             EventCenter.AddListener(EventType.IsAnPrimeDead, CheckAnPrimeDead);
-        }
+            EventCenter.AddListener<bool>(EventType.TouchWater, ChangeStateToSwim);
+            EventCenter.AddListener(EventType.Dive, ChageStateToDive);
+            EventCenter.AddListener<bool>(EventType.FreezeAll, IsFrezeeAll);
+        }      
 
         public void FixedUpdate()
         {
-            StateMachine.StateMacheUpdate();
             IsAttack();
+            StateMachine.StateMacheUpdate();
             animator.SetFloat("SpeedOfX", Mathf.Abs(rigid.velocity.x));
             animator.SetFloat("SpeedOfY", rigid.velocity.y);
             animator.SetBool("Ground", isGrounded);
             animator.SetBool("Jump", isJump);
+            animator.SetBool("Push", isPushing);
             animator.SetBool("Attack", isAttack);
+            
+            if (frezeeAll)
+            {
+                rigid.velocity = new Vector2(0, 0);
+                StateMachine.ChangeState(PlayerIdleState.Instance);
+
+            }
             //animator.SetBool("isClimb", isClimb);
             //animator.SetBool("isLadderTop", isLadderTop);
             //animator.SetBool("isCrouch", isCrouch);
             //animator.SetBool("isEnding", isPassLevel);
         }
 
-        public void ChangeStateToSwim()
+        public void ChangeStateToSwim(bool flag)
         {
+            isInWater = flag;
+            if (isInWater)
+                StateMachine.ChangeState(PlayerSwinState.Instance);
+        }
+
+        public void ChageStateToDive()
+        {
+            isDiving = true;
             StateMachine.ChangeState(PlayerSwinState.Instance);
         }
 
-        public void IsGrounded(string lable = " ")
+        public void IsGrounded()
         {
             Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundRadius, playerInfo.ground);
             
@@ -210,41 +253,36 @@ namespace Demo
                 }
             }
         }
+
+        public void CloseEnoughToPushable()
+        {
+            bool isExist = false;
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(interactiveCheck.position, interactiveRadius, playerInfo.ground);
+            foreach (var collider in colliders)
+            {
+                Pushable pushable = collider.transform.GetComponent<Pushable>();
+                if (pushable != null)
+                {
+                    isExist = true;
+                }
+            }
+
+            isCloseToPushable = isExist ? true : false;
+
+        }
+
         /// <summary>
         /// Check that player's state change to drag or push from idle.
         /// </summary>
-        public void IdleToDragOrPush()
-        {
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(interactiveCheck.position, interactiveRadius, playerInfo.ground);
-            foreach (var item in colliders)
-            {
-                if (item.name == "PushableBox")
-                {
-                    //sDebug.Log("close to box");
-                    dragableOrPushable = true;
-                    pushableBox = item.transform;
-                    boxRigidbody = pushableBox.GetComponent<Rigidbody2D>();
-                }
-            }
-        }
-        /// <summary>
-        /// Check that player stop dragging or pushing.
-        /// </summary>
-        public void DragOrPushToIdle()
-        {
-            if (pushableBox != null)
-            {
-                Transform boxGroundCheck = pushableBox.Find("BoxGroundCheck");
-                Collider2D[] colliders = Physics2D.OverlapCircleAll(boxGroundCheck.position, boxDropRadius, playerInfo.ground);
-                int id = Array.IndexOf(colliders, GameObject.Find("Ground").GetComponent<Collider2D>());
-                if (id == -1 && dragableOrPushable == true)
-                {
-                    dragableOrPushable = false;
-                }
-            }
-            
-        }
 
+        public void CheckReleaseBox()
+        {
+            if (!InputManager.InteractiveBtnDown || !isCloseToPushable)
+            {
+                isReleaseBox = true;
+            }
+        }
+        
         /// <summary>
         /// Check if player approachs to water side.
         /// </summary>
@@ -400,12 +438,17 @@ namespace Demo
             iceCubeCell.transform.localScale = new Vector3(1, 1, 1);
         }
 
+        private void IsFrezeeAll(bool flag)
+        {
+            frezeeAll = flag;
+        }
+
         /// <summary>
         /// Check if player perform attack skill.
         /// </summary>
         public void IsAttack()
         {
-            if (Input.GetKeyDown(KeyCode.Z))
+            if (InputManager.SkillBtnDown && !frezeeAttack)
             {
                 isAttack = true;
             }
@@ -442,11 +485,11 @@ namespace Demo
                 moveFactor = playerInfo.crouchSpeedFactor;
             }
 
-            if (Input.GetKey(KeyCode.A))
+            if (InputManager.LeftBtnDown)
             {
                 speedOfX = -playerInfo.maxSpeed * moveFactor;
             }
-            else if (Input.GetKey(KeyCode.D))
+            else if (InputManager.RightBtnDown)
             {
                 speedOfX = playerInfo.maxSpeed * moveFactor;
             }
@@ -454,6 +497,7 @@ namespace Demo
             {
                 speedOfX = 0;
             }
+
 
             rigid.velocity = new Vector2(speedOfX, rigid.velocity.y);
 
@@ -469,25 +513,23 @@ namespace Demo
 
         public void MoveWithBox()
         {
-            if (pushableBox != null)
+            if (InputManager.LeftBtnDown)
             {
-                if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.E))
-                {
-                    speedOfX = -playerInfo.dragOrPushSpeed;
-                }
-                else if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.E))
-                {
-                    speedOfX = playerInfo.dragOrPushSpeed;
-                }
-                else
-                {
-                    speedOfX = 0;
-                }
-
-                rigid.velocity = new Vector2(speedOfX, rigid.velocity.y);
-                boxRigidbody.velocity = new Vector2(speedOfX, rigid.velocity.y);
+                speedOfX = -playerInfo.maxSpeed * 0.5f;
             }
+            else if (InputManager.RightBtnDown)
+            {
+                speedOfX = playerInfo.maxSpeed * 0.5f;
+            }
+            else
+            {
+                speedOfX = 0;
+            }
+
+            rigid.velocity = new Vector2(speedOfX * 1f, rigid.velocity.y);
+
         }
+
 
         private void HorizontalFlip()
         {
@@ -499,6 +541,10 @@ namespace Demo
         {
             isDead = true;
         }
+
+        #region Input Manager
+        
+        #endregion
 
         public void OnPassLevel()
         {

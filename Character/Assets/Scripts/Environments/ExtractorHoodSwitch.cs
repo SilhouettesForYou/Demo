@@ -33,7 +33,7 @@ namespace Demo
 
         void FixedUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.E) && isCollider)
+            if (InputManager.InteractiveBtnDown && isCollider)
             {
                 if (!isTurnOn)
                 {
@@ -69,8 +69,6 @@ namespace Demo
                 else if (boxCollider.size.x < maxSize)
                 {
                     buoyancy.density += 0.05f;
-                    Vector2 spreadSize = new Vector2(boxCollider.size.x + 0.05f, boxCollider.size.y);
-                    boxCollider.size = spreadSize;
                 }
             }
             else

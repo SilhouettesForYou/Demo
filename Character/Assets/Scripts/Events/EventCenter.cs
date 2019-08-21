@@ -7,7 +7,20 @@ namespace Demo
 {
     public enum EventType
     {
-        IsAnPrimeDead
+        IsAnPrimeDead,
+        RunLeft,
+        RunRight,
+        Jump,
+        Interactive,
+        Skill,
+        Push,
+        CupBlowUp,
+        KnifeStop,
+        Attach,
+        TouchWater,
+        Dive,
+        FreezeAll,
+        FocusOn
     }
 
 

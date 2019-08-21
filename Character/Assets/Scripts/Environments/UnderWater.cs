@@ -6,9 +6,6 @@ namespace Demo
 {
     public class UnderWater : MonoBehaviour
     {
-        public delegate void ChangeStateToSwim();
-        public static event ChangeStateToSwim changeStateToSwim;
-
         public delegate void SetWaterLeak();
         public static event SetWaterLeak setWaterLeak;
 
@@ -35,7 +32,7 @@ namespace Demo
             {
                 playerRigibody = collider.gameObject.GetComponent<Rigidbody2D>();
                 playerRigibody.mass = mass;
-                changeStateToSwim();
+                EventCenter.Braodcast(EventType.Dive);
                 setWaterLeak();
             }
         }

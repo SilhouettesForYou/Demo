@@ -30,7 +30,7 @@ namespace Demo
             // check if player is on the ground.
             owner.IsGrounded();
             // check if player is going to do the movement of dragging or pushing.
-            owner.IdleToDragOrPush();
+            owner.CloseEnoughToPushable();
             // check if player is going to perform the skill.
             owner.IdleToPerfoemSkill();
             // check if player is going to perform the attack skill.
@@ -43,17 +43,15 @@ namespace Demo
                 {
                     owner.StateMachine.ChangeState(PlayerAttackState.Instance);
                 }
-
-                if (owner.dragableOrPushable == true && Input.GetKey(KeyCode.E))
+                if (owner.isCloseToPushable == true && InputManager.InteractiveBtnDown)
                 {
                     owner.StateMachine.ChangeState(PlayerPushGragState.Instance);
                 }
-                else if ((Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D) ||
-                    Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D)))
+                else if (InputManager.LeftBtnDown || InputManager.RightBtnDown)
                 {
                     owner.StateMachine.ChangeState(PlayerRunState.Instance);
                 }
-                else if (owner.isLadderTop == false && (Input.GetKey(KeyCode.Space))) // climb up
+                else if (owner.isLadderTop == false && InputManager.JumpBtnDown) // climb up
                 {
                     //Debug.Log("Change to jumpping state");
                     owner.StateMachine.ChangeState(PlayerJumpState.Instance);
@@ -62,7 +60,7 @@ namespace Demo
                 {
                     owner.StateMachine.ChangeState(PlayerCrouchState.Instance);
                 }
-                else if (owner.isPerformSkill == true && Input.GetKeyDown(KeyCode.E))
+                else if (owner.isPerformSkill == true && InputManager.SkillBtnDown)
                 {
                     owner.StateMachine.ChangeState(PerformAbilitiesState.Instance);
                 }

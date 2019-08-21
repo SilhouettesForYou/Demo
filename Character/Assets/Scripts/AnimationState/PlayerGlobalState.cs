@@ -14,7 +14,6 @@ namespace Demo
                 return m_Instance;
             }
         }
-
         private PlayerGlobalState() { }
 
         public override void Enter()
@@ -24,6 +23,7 @@ namespace Demo
 
         public override void Excute()
         {
+            //Debug.Log(owner.StateMachine.CurrentState);
             if (owner.isDead)
             {
                 owner.OnAssistPlayerBeHurtToDead();

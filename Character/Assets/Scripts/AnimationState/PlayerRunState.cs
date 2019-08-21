@@ -25,7 +25,7 @@ namespace Demo
         public override void Excute()
         {
             owner.MoveHorizontally();
-
+            owner.CloseEnoughToPushable();
             owner.IsAttack();
 
             if (owner.isAttack)
@@ -33,18 +33,22 @@ namespace Demo
                 owner.StateMachine.ChangeState(PlayerAttackState.Instance);
             }
 
-            // change state
-            if (Mathf.Abs(owner.speedOfX) < 0.1f || Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
-            {
-                owner.StateMachine.ChangeState(PlayerIdleState.Instance);
-            }
-            else if (Input.GetKey(KeyCode.Space))
+            
+            if (InputManager.JumpBtnDown)
             {
                 owner.StateMachine.ChangeState(PlayerJumpState.Instance);
+            }
+            else if (Mathf.Abs(owner.speedOfX) < 0.1f || InputManager.LeftBtnDown || InputManager.RightBtnDown)
+            {
+                owner.StateMachine.ChangeState(PlayerIdleState.Instance);
             }
             else if (owner.isLadderTop = false && Input.GetKey(KeyCode.S))
             {
                 owner.StateMachine.ChangeState(PlayerCrouchState.Instance);
+            }
+            else if (owner.isCloseToPushable == true && InputManager.InteractiveBtnDown)
+            {
+                owner.StateMachine.ChangeState(PlayerPushGragState.Instance);
             }
         }
 

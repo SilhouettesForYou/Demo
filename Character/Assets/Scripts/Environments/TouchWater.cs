@@ -6,16 +6,13 @@ namespace Demo
 { 
     public class TouchWater : MonoBehaviour
     {
-        public delegate void ChangeStateToSwim();
-        public static event ChangeStateToSwim changeStateToSwim;
-
         public PlayerInfo playerInfo;
         private Transform player;
         private Rigidbody2D playerRigibody;
         private float mass;
         private Vector2 direction = Vector2.down * 1;
         private float band = 0.1f;
-        private Vector2 boxSize = new Vector2(0.1f, 1.0f);
+
         // Start is called before the first frame update
         void Start()
         {
@@ -61,10 +58,9 @@ namespace Demo
                         //Debug.Log("sink");
                         playerRigibody = player.GetComponent<Rigidbody2D>();
                         playerRigibody.mass = mass;
-                        changeStateToSwim();
+                        EventCenter.Braodcast<bool>(EventType.TouchWater, true);
                     }
                 }
-
             }
         }
 
@@ -73,6 +69,15 @@ namespace Demo
             if (collider.transform.name == "An'")
             {
                 player = collider.transform;
+            }
+        }
+
+        void OnTriggerExit2D(Collider2D collider)
+        {
+            if (collider.transform.name == "An'")
+            {
+                player = null;
+                EventCenter.Braodcast<bool>(EventType.TouchWater, false);
             }
         }
 

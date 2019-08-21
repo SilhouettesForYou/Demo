@@ -14,9 +14,12 @@ namespace Demo
         private float time = 0;
         private int count = 0;
         private int maxCount = 80;
+
+        private bool isStopped = false;
         // Start is called before the first frame update
         void Start()
         {
+            EventCenter.AddListener(EventType.KnifeStop, RopeIsCut);
             fixedAncher = transform.Find("FixedAncher");
             // locate the fixed point
             float pixelsPerUnitBackground = transform.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
@@ -33,19 +36,23 @@ namespace Demo
         // Update is called once per frame
         void FixedUpdate()
         {
-            time += Time.fixedDeltaTime;
-            Debug.DrawLine(transform.position, fixedPoint, Color.cyan);
-            if (count % maxCount < maxCount / 2)
+            if (!isStopped)
             {
-                transform.position = RotateRound(transform.position, fixedPoint, Vector3.back, angle);
+                time += Time.fixedDeltaTime;
+                Debug.DrawLine(transform.position, fixedPoint, Color.cyan);
+                if (count % maxCount < maxCount / 2)
+                {
+                    transform.position = RotateRound(transform.position, fixedPoint, Vector3.back, angle);
+                }
+                else
+                {
+                    transform.position = RotateRound(transform.position, fixedPoint, Vector3.forward, angle);
+                }
+                count += 1;
+                if (count == maxCount)
+                    count = 0;
             }
-            else
-            {
-                transform.position = RotateRound(transform.position, fixedPoint, Vector3.forward, angle);
-            }
-            count += 1;
-            if (count == maxCount)
-                count = 0;
+            
         }
         private Vector3 RotateRound(Vector3 position, Vector3 center, Vector3 axis, float angle)
         {
@@ -53,6 +60,11 @@ namespace Demo
             Vector3 resultVec3 = center + point;
             resultVec3.z = 0;
             return resultVec3;
+        }
+
+        public void RopeIsCut()
+        {
+            isStopped = true;
         }
     }
 }

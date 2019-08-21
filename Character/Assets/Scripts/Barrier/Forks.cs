@@ -15,6 +15,8 @@ namespace Demo
         // Start is called before the first frame update
         void Start()
         {
+            EventCenter.AddListener<Transform>(EventType.CupBlowUp, CupBlowUp);
+
             int num = transform.childCount;
             forks = new Dictionary<Transform, bool>();
             for (int i = 0; i < num; i++)
@@ -77,10 +79,23 @@ namespace Demo
             
         }
 
+        public void CupBlowUp(Transform fork)
+        {
+            StartCoroutine(ConverToIron(fork));
+        }
+
         IEnumerator Delay(Rigidbody2D body)
         {
             yield return new WaitForSeconds(1.0f);
             body.velocity = Vector2.zero;
+        }
+
+        private IEnumerator ConverToIron(Transform fork)
+        {
+            yield return new WaitForSeconds(1.0f);
+            GameObject iron = Instantiate(Resources.Load("Prefabs/IronCube")) as GameObject;
+            iron.transform.position = fork.position;
+            fork.gameObject.SetActive(false);
         }
 
         private void CheckForkOnPlayer(Transform fork)

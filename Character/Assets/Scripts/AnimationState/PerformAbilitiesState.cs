@@ -40,8 +40,8 @@ namespace Demo
 
             if (owner.isPerformSkilUnderWater)
             {
-                end1.position = new Vector3(end1.position.x, end1.position.y + far * 1.5f, 0);
-                end2.position = new Vector3(end2.position.x, end2.position.y + far * 1.5f, 0);
+                end1.position = new Vector3(end1.position.x, end1.position.y + far * 1f, 0);
+                end2.position = new Vector3(end2.position.x, end2.position.y + far * 1f, 0);
             }
             else
             {

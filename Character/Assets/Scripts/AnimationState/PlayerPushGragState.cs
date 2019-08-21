@@ -18,24 +18,28 @@ namespace Demo
         private PlayerPushGragState() { }
         public override void Enter()
         {
-            //Debug.Log("Begin Drag or Push");
+            //Debug.Log("Begin Drag or Push")
         }
 
         public override void Excute()
         {
-            owner.MoveWithBox();
-            owner.DragOrPushToIdle();
-            if (owner.dragableOrPushable == false || (owner.dragableOrPushable && Input.GetKeyUp(KeyCode.E)))
+            owner.CloseEnoughToPushable();
+            if (InputManager.InteractiveBtnDown)
             {
-                Debug.Log("Stop pushing.");
+                EventCenter.Braodcast<bool, Rigidbody2D>(EventType.Attach, true, owner.rigid);
+                owner.isReleaseBox = false;
+                owner.MoveWithBox();
+            }
+            else
+            {
+                EventCenter.Braodcast<bool, Rigidbody2D>(EventType.Attach, false, null);
                 owner.StateMachine.ChangeState(PlayerIdleState.Instance);
-                owner.dragableOrPushable = false;
             }
         }
 
         public override void Exit()
         {
-            owner.dragableOrPushable = false;
+           
         }
     }
 }

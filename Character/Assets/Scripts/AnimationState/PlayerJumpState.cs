@@ -48,7 +48,7 @@ namespace Demo
             }
             else
             {
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+                if (InputManager.LeftBtnDown || InputManager.RightBtnDown)
                 {
                     owner.MoveHorizontally();
                 }

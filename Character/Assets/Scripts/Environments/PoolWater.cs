@@ -96,12 +96,16 @@ namespace Demo
         {
             if (isInflowTrigger)
             {
+                EventCenter.Braodcast<bool>(EventType.FreezeAll, true);
+                EventCenter.Braodcast<bool>(EventType.FocusOn, false);
                 SurfaceUp(waterBackground, scaleOfBackground, deltaOfBackgroundScale, yOfBackgroundBottom);
                 SurfaceUp(water, scaleOfWater, deltaOfWaterScale, yOfWaterBottom);
                 SetAncher(water, widthOfWater, heightOfWater);
             }
             if (done)
             {
+                EventCenter.Braodcast<bool>(EventType.FreezeAll, false);
+                EventCenter.Braodcast<bool>(EventType.FocusOn, true);
                 isInflowTrigger = false;
                 turnOff(); 
             }
@@ -171,7 +175,7 @@ namespace Demo
         private void CheckSwitchInteractive()
         {
             Collider2D[] colliders = Physics2D.OverlapCircleAll(waterSwitch.position, checkRadius, playerInfo.player);
-            if (colliders.Length == 1 && colliders[0].transform.name == "An'" && Input.GetKey(KeyCode.Q))
+            if (colliders.Length == 1 && colliders[0].transform.name == "An'" && InputManager.InteractiveBtnDown)
             {
                 isLeakTrigger = true;
                 drops.gameObject.SetActive(false);

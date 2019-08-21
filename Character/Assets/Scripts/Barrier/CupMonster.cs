@@ -73,7 +73,9 @@ namespace Demo
                     {
                         if (item.transform.name == "Fork-1")
                         {
-                            StartCoroutine(ConverToIron());
+                            EventCenter.Braodcast<Transform>(EventType.CupBlowUp, item.transform);
+                            isDead = true;
+                            Destroy(gameObject, 1);
                         }
                     }
                 }
@@ -89,10 +91,6 @@ namespace Demo
             {
                 Destroy(collider.gameObject);
                 sufferedCount++;
-                if (sufferedCount == maxSufferedCount)
-                {
-                    StartCoroutine(ConverToIron());
-                }
             }
         }
 
@@ -121,16 +119,6 @@ namespace Demo
             }
         }
 
-
-        private IEnumerator ConverToIron()
-        {
-            isDead = true;
-            yield return new WaitForSeconds(1.0f);
-            vulnerability.parent.gameObject.SetActive(false);
-            GameObject iron = Instantiate(Resources.Load("Prefabs/IronCube")) as GameObject;
-            iron.transform.position = vulnerability.position;
-            iron.transform.parent = transform.parent;
-        }
     }
 }
 

@@ -15,9 +15,10 @@ namespace Demo
             {
                 sufferedCount++;
                 Destroy(collider.gameObject);
-                if (sufferedCount == 2)
+                if (sufferedCount == 1)
                 {
                     Debug.Log("Rope is broken.");
+                    EventCenter.Braodcast(EventType.KnifeStop);
                     Destroy(transform.gameObject);
                 }
             }
