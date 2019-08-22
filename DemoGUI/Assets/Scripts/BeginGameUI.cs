@@ -41,6 +41,7 @@ namespace Demo
             //前台或者后台检查用户名称与密码
             Debug.Log("开始游戏");
             //如果成功，则登录下一个窗口
+            OpenUI(UINameConst.SelectLevelUI);
         }
 
         public void LoadProgress(GameObject go)

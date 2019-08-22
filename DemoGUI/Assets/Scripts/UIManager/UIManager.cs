@@ -40,8 +40,11 @@ namespace Demo
 
             this.gameObject.transform.SetParent(transformUIScripts, false);
             DontDestroyOnLoad(transformRoot);
-            UIPaths?.Add("BeginGameUI", "UIPrefabs/BeginGameUI");
-            UIPaths?.Add("HomeUI", "UIPrefabs/HomeUI");
+            UIPaths?.Add("Demo.BeginGameUI", "UIPrefabs/BeginGameUI");
+            UIPaths?.Add("Demo.HomeUI", "UIPrefabs/HomeUI");
+            UIPaths?.Add("Demo.PauseUI", "UIPrefabs/PauseUI");
+            UIPaths?.Add("Demo.SelectLevelUI", "UIPrefabs/SelectLevelUI");
+            UIPaths?.Add("Demo.SettingsUI", "UIPrefabs/SettingsUI");
         }
 
         void OnDestroy()
