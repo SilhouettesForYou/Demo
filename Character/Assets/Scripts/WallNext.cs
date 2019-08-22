@@ -5,15 +5,16 @@ namespace Demo
 {
     public class WallNext : MonoBehaviour
     {
+        public bool next;
         public int curScenceIndex;
         void OnTriggerEnter2D(Collider2D collider)
         {
             if (collider.transform.name == "An'")
             {
-                if (curScenceIndex == 3)
-                    SceneManager.LoadScene(0);
-                else
+                if (next)
                     SceneManager.LoadScene(curScenceIndex + 1);
+                else
+                    SceneManager.LoadScene(0);
             }
         }
 

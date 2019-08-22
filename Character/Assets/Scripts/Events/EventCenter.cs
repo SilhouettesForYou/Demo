@@ -19,7 +19,8 @@ namespace Demo
         Attach,
         TouchWater,
         Dive,
-        FreezeAll,
+        FrezeeAll,
+        FrezeeAttack,
         FocusOn
     }
 

@@ -4,22 +4,22 @@ using UnityEngine;
 
 namespace Demo
 {
-   public class InputManager : MonoBehaviour
+    public class InputManager : MonoBehaviour
     {
         private bool frezeeAll = false;
 
-        public static bool LeftBtnDown = false;
-        public static bool LeftBtnHeld = false;
-        public static bool RightBtnDown = false;
-        public static bool RightBtnHeld = false;
-        public static bool JumpBtnDown = false;
-        public static bool InteractiveBtnDown = false;
-        public static bool InteractiveBtnHeld = false;
-        public static bool SkillBtnDown = false;
-        public static bool SkillBtnHeld = false;
+        public static bool LeftBtnDown { get; set; } = false;
+        public static bool LeftBtnHeld { get; set; } = false;
+        public static bool RightBtnDown { get; set; } = false;
+        public static bool RightBtnHeld { get; set; } = false;
+        public static bool JumpBtnDown { get; set; } = false;
+        public static bool InteractiveBtnDown { get; set; } = false;
+        public static bool InteractiveBtnHeld { get; set; } = false;
+        public static bool SkillBtnDown { get; set; } = false;
+        public static bool SkillBtnHeld { get; set; } = false;
         private void Awake()
         {
-            EventCenter.AddListener<bool>(EventType.FreezeAll, IsFrezeeAll);
+            EventCenter.AddListener<bool>(EventType.FrezeeAll, IsFrezeeAll);
             EventCenter.AddListener<bool>(EventType.RunLeft, OnLeftBtnDown);
             EventCenter.AddListener<bool>(EventType.RunRight, OnRightBtnDown);
             EventCenter.AddListener<bool>(EventType.Jump, OnJumpBtnDwon);
@@ -105,6 +105,17 @@ namespace Demo
                 SkillBtnDown = false;
         }
 
-
+        public static void ClearInput()
+        {
+            LeftBtnDown = false;
+            LeftBtnHeld = false;
+            RightBtnDown = false;
+            RightBtnHeld = false;
+            JumpBtnDown = false;
+            InteractiveBtnDown = false;
+            InteractiveBtnHeld = false;
+            SkillBtnDown = false;
+            SkillBtnHeld = false;
+        }
     }
 }

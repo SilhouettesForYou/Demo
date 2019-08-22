@@ -94,19 +94,6 @@ namespace Demo
         private enum IceCubePosition { left, right };
         IceCubePosition placedIceCubePos;
 
-        public void OnGUI()
-        {
-            curScence = SceneManager.GetActiveScene();
-            if (curScence.name == "Level-1-1" || curScence.name == "Level-1-2" || curScence.name == "Level-1-3")
-            {
-                frezeeAttack = true;
-            }
-            else
-            {
-                frezeeAttack = false;
-            }
-        }
-
         void Awake()
         {
             //control = transform.parent.GetComponent<Control>();
@@ -131,7 +118,8 @@ namespace Demo
             EventCenter.AddListener(EventType.IsAnPrimeDead, CheckAnPrimeDead);
             EventCenter.AddListener<bool>(EventType.TouchWater, ChangeStateToSwim);
             EventCenter.AddListener(EventType.Dive, ChageStateToDive);
-            EventCenter.AddListener<bool>(EventType.FreezeAll, IsFrezeeAll);
+            EventCenter.AddListener<bool>(EventType.FrezeeAttack, IsFrezeeAttack);
+            EventCenter.AddListener<bool>(EventType.FrezeeAll, IsFrezeeAll);
         }      
 
         public void FixedUpdate()
@@ -436,6 +424,11 @@ namespace Demo
                 LoadIceCube(iceCubeCell, underWaterBottom, iceCubeCenter);
             }
             iceCubeCell.transform.localScale = new Vector3(1, 1, 1);
+        }
+
+        private void IsFrezeeAttack(bool flag)
+        {
+            frezeeAttack = flag;
         }
 
         private void IsFrezeeAll(bool flag)

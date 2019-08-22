@@ -96,7 +96,7 @@ namespace Demo
         {
             if (isInflowTrigger)
             {
-                EventCenter.Braodcast<bool>(EventType.FreezeAll, true);
+                EventCenter.Braodcast<bool>(EventType.FrezeeAll, true);
                 EventCenter.Braodcast<bool>(EventType.FocusOn, false);
                 SurfaceUp(waterBackground, scaleOfBackground, deltaOfBackgroundScale, yOfBackgroundBottom);
                 SurfaceUp(water, scaleOfWater, deltaOfWaterScale, yOfWaterBottom);
@@ -104,7 +104,7 @@ namespace Demo
             }
             if (done)
             {
-                EventCenter.Braodcast<bool>(EventType.FreezeAll, false);
+                EventCenter.Braodcast<bool>(EventType.FrezeeAll, false);
                 EventCenter.Braodcast<bool>(EventType.FocusOn, true);
                 isInflowTrigger = false;
                 turnOff(); 
