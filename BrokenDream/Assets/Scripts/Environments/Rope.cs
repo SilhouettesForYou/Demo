@@ -7,8 +7,7 @@ namespace Demo
     public class Rope : MonoBehaviour
     {
         private Vector3 destiny;
-        private float speed = 0.5f;
-        private float distance = 0.5f;
+        private float distance = 2.5f;
 
         private LineRenderer line;
         private GameObject knifeBar;
@@ -16,7 +15,6 @@ namespace Demo
         private List<GameObject> nodes = new List<GameObject>();
 
         private int vertexCount = 2;
-        private bool done = false;
 
         void Start()
         {
@@ -25,24 +23,13 @@ namespace Demo
             lastNode = transform.gameObject;
             line = GetComponent<LineRenderer>();
             destiny = GameObject.FindGameObjectWithTag("Nail").transform.position;
+            distance = Vector3.Distance(destiny, knifeBar.transform.position);
+            CreateNode();
+            lastNode.GetComponent<HingeJoint2D>().connectedBody = knifeBar.GetComponent<Rigidbody2D>();
         }
 
         void Update()
         {
-            transform.position = Vector3.MoveTowards(transform.position, destiny, speed);
-
-            if (transform.position != destiny)
-            {
-                if (Vector3.Distance(knifeBar.transform.position, lastNode.transform.position) > distance)
-                {
-                    CreateNode();
-                }
-            }
-            else if (!done)
-            {
-                done = true;
-                //lastNode.GetComponent<HingeJoint2D>().connectedBody = knifeBar.GetComponent<Rigidbody2D>();
-            }
             RenderLine();
         }
 

@@ -78,27 +78,32 @@ namespace Demo
         [HideInInspector]
         public bool isCloseToPushable = false;
 
-        [HideInInspector]
-        public static float width;
-        public static float height;
-
         private Transform groundCheck;
-        private readonly float groundRadius = 0.1f;
+        private readonly float groundRadius = 0.2f;
         private Transform ladderCheck;
         private readonly float ladderRadius = 0.6f;
         private Transform interactiveCheck;
         private readonly float interactiveRadius = 1.0f;
         private readonly float waterSideRadius = 0.1f;
-        private readonly float offsetOfIceCubeTwo = 0.1f;
+        private readonly float offsetOfIceCubeTwo = 0.0f;
         private readonly float offsetOfScaleIceCube = 0.1f;
-        private float lengthOfCubeCell;
         private Transform water;
-        private Transform lastIceCube;
         private enum IceCubePosition { left, right };
         IceCubePosition placedIceCubePos;
 
         void Awake()
         {
+            Scene scene = SceneManager.GetActiveScene();
+            string curSceneName = scene.name;
+            if (curSceneName == "Level-1")
+            {
+                frezeeAttack = true;
+            }
+            else
+            {
+                frezeeAttack = false;
+            }
+
             //control = transform.parent.GetComponent<Control>();
             rigid = GetComponent<Rigidbody2D>();
             animator = GetComponent<Animator>();
@@ -107,14 +112,7 @@ namespace Demo
             ladderCheck = transform.Find("LadderCheck");
             interactiveCheck = transform.Find("InteractiveCheck");
 
-
-            Vector3 left = iceCube.transform.Find("LeftSide").position;
-            Vector3 right = iceCube.transform.Find("RightSide").position;
-            lengthOfCubeCell = Vector3.Distance(left, right);
-
             playerMass = rigid.mass;
-
-            ComputeRect();
         }
 
         void Start()
@@ -123,8 +121,8 @@ namespace Demo
             EventCenter.AddListener(EventType.IsAnPrimeDead, CheckAnPrimeDead);
             EventCenter.AddListener<bool>(EventType.TouchWater, ChangeStateToSwim);
             EventCenter.AddListener(EventType.Dive, ChageStateToDive);
-            EventCenter.AddListener<bool>(EventType.FrezeeAttack, IsFrezeeAttack);
             EventCenter.AddListener<bool>(EventType.FrezeeAll, IsFrezeeAll);
+            EventCenter.AddListener<Transform>(EventType.DivingInPool, IdleToPerfoemSkillUnderWater);
         }      
 
         public void FixedUpdate()
@@ -143,21 +141,13 @@ namespace Demo
             {
                 rigid.velocity = new Vector2(0, 0);
                 StateMachine.ChangeState(PlayerIdleState.Instance);
-
             }
             //animator.SetBool("isClimb", isClimb);
             //animator.SetBool("isLadderTop", isLadderTop);
             //animator.SetBool("isCrouch", isCrouch);
             //animator.SetBool("isEnding", isPassLevel);
         }
-        private void ComputeRect()
-        {
-            float pixelsPerUnit = transform.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
-            width = transform.GetComponent<SpriteRenderer>().sprite.rect.width / pixelsPerUnit;
-            height = transform.GetComponent<SpriteRenderer>().sprite.rect.height / pixelsPerUnit;
-            width *= transform.localScale.x;
-            height *= transform.localScale.y;
-        }
+        
 
         public void ChangeStateToSwim(bool flag)
         {
@@ -179,6 +169,18 @@ namespace Demo
             foreach (var item in colliders)
             {
                 if (item != gameObject.GetComponent<Collider2D>() && item.tag != "CheckLadderTop")
+                {
+                    //Debug.Log(lable + item + "---" + gameObject);
+                    isGrounded = true;
+                    isLadderTop = false;
+                }
+            }
+
+            colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundRadius, config.water);
+
+            foreach (var item in colliders)
+            {
+                if (item != gameObject.GetComponent<Collider2D>())
                 {
                     //Debug.Log(lable + item + "---" + gameObject);
                     isGrounded = true;
@@ -298,9 +300,9 @@ namespace Demo
                 direction = Vector3.right * Mathf.Sqrt(3) + Vector3.down;
             else
                 direction = Vector3.left * Mathf.Sqrt(3) + Vector3.down;
-            Vector3 endPoint = interactiveCheck.position + direction;
+            Vector3 endPoint = interactiveCheck.position + direction * 2;
 
-            Debug.DrawRay(interactiveCheck.position, direction, Color.black);
+            Debug.DrawLine(interactiveCheck.position, endPoint, Color.red);
 
             Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius,
                 1 << LayerMask.NameToLayer("Water"));
@@ -327,23 +329,18 @@ namespace Demo
         public void PlaceIceBlock()
         {
             // compute size of ice cube
-            Vector3 left = iceCube.transform.Find("LeftSide").position;
-            Vector3 right = iceCube.transform.Find("RightSide").position;
-            float lengthOfIceCube = Vector3.Distance(left, right);
+            float lengthOfIceCube = PankapuConfig.ComputeRect(iceCube.transform).x;
 
             // compute the ancher point of water bottom
-            float pixelsPerUnit = water.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
-            float width = water.GetComponent<SpriteRenderer>().sprite.rect.width / pixelsPerUnit;
-            float height = water.GetComponent<SpriteRenderer>().sprite.rect.height / pixelsPerUnit;
-            width *= water.localScale.x;
-            height *= water.localScale.y;
+            float width = PankapuConfig.ComputeRect(water).x * water.parent.localScale.x;
+            float height = PankapuConfig.ComputeRect(water).y * water.parent.localScale.y;
 
             Vector3 leftTop = new Vector3(water.position.x - width / 2, water.position.y + height / 2, water.position.z);
             Vector3 rightTop = new Vector3(water.position.x + width / 2, water.position.y + height / 2, water.position.z);
 
             float lengthOfScaledIceCube = Vector3.Distance(leftTop, rightTop) / 2;
             float scaleX = lengthOfScaledIceCube / lengthOfIceCube;
-            iceCube.transform.localScale = new Vector3(scaleX, 1, 1);
+            iceCube.transform.localScale = new Vector3(scaleX, 0.3f, 1);
 
             if (water.Find("IceCube(Clone)") == null)
             {
@@ -365,14 +362,14 @@ namespace Demo
             {
                 if (placedIceCubePos == IceCubePosition.left)
                 {
-                    float xCenter = lastIceCube.Find("RightSide").transform.position.x + (lengthOfScaledIceCube / 2) + offsetOfIceCubeTwo;
+                    float xCenter = rightTop.x - (lengthOfScaledIceCube / 2) + offsetOfIceCubeTwo;
                     Vector3 iceCubeCenter = new Vector3(xCenter, rightTop.y, 0);
                     LoadIceCube(iceCube, water, iceCubeCenter);
                     placedIceCubePos = IceCubePosition.right;
                 }
                 else if (placedIceCubePos == IceCubePosition.right)
                 {
-                    float xCenter = lastIceCube.Find("LeftSide").transform.position.x - (lengthOfScaledIceCube / 2) - offsetOfIceCubeTwo;
+                    float xCenter = leftTop.x + (lengthOfScaledIceCube / 2) - offsetOfIceCubeTwo;
                     Vector3 iceCubeCenter = new Vector3(xCenter, rightTop.y, 0);
                     LoadIceCube(iceCube, water, iceCubeCenter);
                     placedIceCubePos = IceCubePosition.left;
@@ -387,31 +384,15 @@ namespace Demo
             go.transform.position = iceCubeCenter;
             go.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             go.transform.parent = parent;
-            lastIceCube = go.transform;
         }
 
         /// <summary>
         /// Check if player is under water.
         /// </summary>
-        public void IdleToPerfoemSkillUnderWater()
+        public void IdleToPerfoemSkillUnderWater(Transform t)
         {
-            Vector3 endPoint = interactiveCheck.position + Vector3.up;
-            Debug.DrawRay(interactiveCheck.position, Vector3.up, Color.red);
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(endPoint, waterSideRadius,
-                1 << LayerMask.NameToLayer("Water"));
-            string[] names = new string[colliders.Length];
-            for (int i = 0; i < colliders.Length; i++)
-            {
-                names[i] = colliders[i].name;
-            }
-            int bottomId = Array.IndexOf(names, "Bottom");
-            int iceCubeId = Array.IndexOf(names, "IceCubeCell(Clone)");
-            
-            if (StateMachine.CurrentState == PlayerSwinState.Instance && bottomId != -1 && iceCubeId == -1)
-            {
-                isPerformSkilUnderWater = true;
-                underWaterBottom = colliders[bottomId].transform;
-            }
+            isPerformSkilUnderWater = true;
+            underWaterBottom = t;
         }
 
         /// <summary>
@@ -421,33 +402,28 @@ namespace Demo
         {
             Transform leftBottom = underWaterBottom.Find("AncherLeftBottom");
             Transform rightBottom = underWaterBottom.Find("AncherRightBottom");
-
+            float lengthOfCubeCell= PankapuConfig.ComputeRect(iceCube.transform).x;
             float lengthOfIceCube = Vector3.Distance(leftBottom.position, rightBottom.position) / 3;
             float scaleX = lengthOfIceCube / lengthOfCubeCell - offsetOfScaleIceCube;
-            iceCube.transform.localScale = new Vector3(scaleX, 1, 1);
+            iceCube.transform.localScale = new Vector3(scaleX, 0.5f, 1);
 
             // There are three segment to place the ice cube.
             if (transform.position.x > leftBottom.position.x && transform.position.x < leftBottom.position.x + lengthOfIceCube)
             {
-                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + lengthOfIceCube / 2, ladderCheck.position.y, 0);
                 LoadIceCube(iceCube, underWaterBottom, iceCubeCenter);
             }
             else if (transform.position.x > leftBottom.position.x + lengthOfIceCube && transform.position.x < leftBottom.position.x + 2 * lengthOfIceCube)
             {
-                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 3 * lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 3 * lengthOfIceCube / 2, ladderCheck.position.y, 0);
                 LoadIceCube(iceCube, underWaterBottom, iceCubeCenter);
             }
             else if (transform.position.x > leftBottom.position.x + 2 * lengthOfIceCube && transform.position.x < rightBottom.position.x)
             {
-                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 5 * lengthOfIceCube / 2, underWaterBottom.position.y / 2, 0);
+                Vector3 iceCubeCenter = new Vector3(leftBottom.position.x + 5 * lengthOfIceCube / 2, ladderCheck.position.y, 0);
                 LoadIceCube(iceCube, underWaterBottom, iceCubeCenter);
             }
             iceCube.transform.localScale = new Vector3(1, 1, 1);
-        }
-
-        private void IsFrezeeAttack(bool flag)
-        {
-            frezeeAttack = flag;
         }
 
         private void IsFrezeeAll(bool flag)

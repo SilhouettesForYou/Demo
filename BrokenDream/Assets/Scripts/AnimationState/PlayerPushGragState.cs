@@ -27,12 +27,14 @@ namespace Demo
             if (InputManager.InteractiveBtnDown)
             {
                 EventCenter.Braodcast<bool, Rigidbody2D>(EventType.Attach, true, owner.rigid);
+                EventCenter.Braodcast<bool>(EventType.Facing, owner.isFacingRight);
                 owner.isReleaseBox = false;
                 owner.MoveWithBox();
             }
             else
             {
                 EventCenter.Braodcast<bool, Rigidbody2D>(EventType.Attach, false, null);
+                EventCenter.Braodcast<bool>(EventType.Facing, owner.isFacingRight);
                 owner.StateMachine.ChangeState(PlayerIdleState.Instance);
             }
         }

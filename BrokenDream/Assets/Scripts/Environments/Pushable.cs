@@ -14,6 +14,10 @@ namespace Demo
         private FixedJoint2D joint;
         private bool isAttached = false;
         private bool isGrounded = true;
+        private bool isFacingRight = true;
+
+        private float relativeWidth;
+        private float relativeHeight;
 
         void Awake()
         {
@@ -23,22 +27,25 @@ namespace Demo
             joint = GetComponent<FixedJoint2D>();
             joint.enabled = false;
             EventCenter.AddListener<bool, Rigidbody2D>(EventType.Attach, CheckPush);
+            EventCenter.AddListener<bool>(EventType.Facing, CheckFacing);
         }
 
         void FixedUpdate()
         {
             if (isAttached)
             {
+                ComputeConnectedAncher(isFacingRight);
                 // Release the constrain of X when the box is pushable or dragable, at the same tiem, 'E' pressed.
                 body.constraints &= ~RigidbodyConstraints2D.FreezePositionX;
                 joint.enabled = true;
                 joint.connectedBody = player;
-                joint.connectedAnchor = new Vector2(15, -2.7f);
+                joint.connectedAnchor = new Vector2(relativeWidth, relativeHeight);
                 joint.anchor = new Vector2(0f, 0f);
             }
             else
             {
                 body.constraints |= RigidbodyConstraints2D.FreezePositionX;
+                //joint.connectedAnchor = new Vector2(0, 0);
                 joint.enabled = false;
                 joint.connectedBody = null;
             }
@@ -53,6 +60,19 @@ namespace Demo
             }
         }
 
+        private void ComputeConnectedAncher(bool facingRight)
+        {
+            // original rect
+            Rect pankapuRect = FindObjectOfType<Pankapu>().transform.GetComponent<SpriteRenderer>().sprite.rect;
+            Rect boxRect = transform.GetComponent<SpriteRenderer>().sprite.rect;
+
+            float pixelsPankapu = FindObjectOfType<Pankapu>().transform.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
+            float pixelsBox = transform.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
+
+            relativeWidth = (isFacingRight ? 1 : -1) * 
+                (pankapuRect.width / (2 * pixelsPankapu) + boxRect.width / (2 * pixelsBox));
+            relativeHeight = -boxRect.height / (2 * pixelsBox);
+        }
 
         private void CheckGround(Transform left, Transform right)
         {
@@ -73,6 +93,11 @@ namespace Demo
         {
             isAttached = flag;
             player = body;
+        }
+
+        private void CheckFacing(bool flag)
+        {
+            isFacingRight = flag;
         }
 
     }

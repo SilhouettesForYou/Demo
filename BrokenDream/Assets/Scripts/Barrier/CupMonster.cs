@@ -34,11 +34,13 @@ namespace Demo
             vulnerability = transform.Find("Vulnerability");
 
             startPoint = transform.position;
+            animator = GetComponent<Animator>();
         }
 
         // Update is called once per frame
         void Update()
         {
+            animator.SetBool("Dead", isDead);
             if (isMoving)
             {
                 if (isFacingRight)
@@ -93,7 +95,10 @@ namespace Demo
             {
                 Destroy(collider.gameObject);
                 if (sufferedCount == maxSufferedCount)
+                {
+                    isDead = true;
                     Destroy(gameObject);
+                }
                 sufferedCount++;
             }
         }

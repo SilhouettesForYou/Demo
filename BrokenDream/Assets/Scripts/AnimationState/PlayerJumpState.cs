@@ -44,6 +44,7 @@ namespace Demo
             if (owner.isGrounded)
             {
                 //Debug.Log("Jumpping");
+                owner.isJump = false;
                 owner.StateMachine.ChangeState(PlayerIdleState.Instance);
             }
             else

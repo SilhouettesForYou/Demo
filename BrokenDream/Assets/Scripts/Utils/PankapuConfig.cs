@@ -18,6 +18,19 @@ namespace Demo
         public LayerMask pankapu;
         public LayerMask monster;
 
+        public static float height { get; set; }
+        public static float width { get; set; }
+
+        public static Vector2 ComputeRect(Transform transform)
+        {
+            float pixelsPerUnit = transform.GetComponent<SpriteRenderer>().sprite.pixelsPerUnit;
+            float width = transform.GetComponent<SpriteRenderer>().sprite.rect.width / pixelsPerUnit;
+            float height = transform.GetComponent<SpriteRenderer>().sprite.rect.height / pixelsPerUnit;
+            width *= transform.localScale.x;
+            height *= transform.localScale.y;
+            return new Vector2(width, height);
+        }
+
         private string playerInfoJsonPath;
         private void OnEnable()
         {

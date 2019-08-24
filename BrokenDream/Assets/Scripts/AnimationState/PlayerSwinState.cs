@@ -26,7 +26,6 @@ namespace Demo
         {
             owner.MoveHorizontally();
             // check if player is going to perform the skill under water.
-            owner.IdleToPerfoemSkillUnderWater();
             if (InputManager.JumpBtnDown && owner.isInWater)
             {
                 owner.rigid.MovePosition(new Vector2(owner.rigid.position.x, owner.rigid.position.y + 0.125f));

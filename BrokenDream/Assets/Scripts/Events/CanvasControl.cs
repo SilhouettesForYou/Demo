@@ -60,10 +60,12 @@ namespace Demo
             interactiveBtnListener.OnKeyDown += delegate (GameObject button)
             {
                 EventCenter.Braodcast<bool>(EventType.Interactive, true);
+                EventCenter.Braodcast<bool>(EventType.InteractiveUp, false);
             };
             interactiveBtnListener.OnKeyUp += delegate (GameObject button)
             {
                 EventCenter.Braodcast<bool>(EventType.Interactive, false);
+                EventCenter.Braodcast<bool>(EventType.InteractiveUp, true);
             };
 
             UIEventListener skillBtnListener = skillBtn.gameObject.AddComponent<UIEventListener>();

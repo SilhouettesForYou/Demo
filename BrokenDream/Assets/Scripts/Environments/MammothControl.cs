@@ -9,20 +9,15 @@ namespace Demo
         private bool isTrigger;
         private bool off = false;
         private float yScale;
-        private readonly float delta = 0.25f;
-
-        public delegate void TurnOutfallOn();
-        public static event TurnOutfallOn turnOn;
-
+        private Animator animator;
         private Transform waterFlow;
         // Start is called before the first frame update
         void Start()
         {
             isTrigger = false;
-            PoolWater.turnOff += TurnOutfallOff;
-
-            Transform outfall = transform.parent.Find("Outfall");
-            waterFlow = outfall.Find("WaterFlow");
+            EventCenter.AddListener(EventType.TurnWaterFaucetOff, TurnOutfallOff);
+            waterFlow = transform.parent.Find("WaterFlow");
+            animator = waterFlow.GetComponent<Animator>();
             yScale = waterFlow.localScale.y;
             waterFlow.gameObject.SetActive(false);
             //waterFlow.localScale = new Vector3(waterFlow.localScale.x, 0, waterFlow.localScale.z);
@@ -33,15 +28,8 @@ namespace Demo
         {
             if (off)
             {
-                if (yScale > 0)
-                {
-                    yScale -= Time.deltaTime * delta;
-                    waterFlow.localScale = new Vector3(waterFlow.localScale.x, yScale, waterFlow.localScale.z);
-                }
-                else
-                {
-                    waterFlow.gameObject.SetActive(false);
-                }
+                animator.SetBool("Flow", false);
+                waterFlow.gameObject.SetActive(false);
             }
         }
 
@@ -49,9 +37,10 @@ namespace Demo
         {
             if (!isTrigger)
             {
-                turnOn();
+                EventCenter.Braodcast(EventType.TurnWaterFaucetOn);
                 isTrigger = true;
                 waterFlow.gameObject.SetActive(true);
+                animator.SetBool("Flow", true);
             }
         }
 

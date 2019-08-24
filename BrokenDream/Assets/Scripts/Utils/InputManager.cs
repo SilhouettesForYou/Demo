@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 namespace Demo
@@ -14,7 +15,7 @@ namespace Demo
         public static bool RightBtnHeld { get; set; } = false;
         public static bool JumpBtnDown { get; set; } = false;
         public static bool InteractiveBtnDown { get; set; } = false;
-        public static bool InteractiveBtnHeld { get; set; } = false;
+        public static bool InteractiveBtnUp { get; set; } = true;
         public static bool SkillBtnDown { get; set; } = false;
         public static bool SkillBtnHeld { get; set; } = false;
         private void Awake()
@@ -24,6 +25,7 @@ namespace Demo
             EventCenter.AddListener<bool>(EventType.RunRight, OnRightBtnDown);
             EventCenter.AddListener<bool>(EventType.Jump, OnJumpBtnDwon);
             EventCenter.AddListener<bool>(EventType.Interactive, OnInteractiveBtnDown);
+            EventCenter.AddListener<bool>(EventType.InteractiveUp, OnInteractiveBtnUp);
             EventCenter.AddListener<bool>(EventType.Skill, OnSkillBtnDown);
         }
 
@@ -95,9 +97,15 @@ namespace Demo
         {
             InteractiveBtnDown = flag;
             if (frezeeAll)
-                InteractiveBtnDown = flag;
+                InteractiveBtnDown = false;
         }
 
+        private void OnInteractiveBtnUp(bool flag)
+        {
+            InteractiveBtnUp = flag;
+            if (frezeeAll)
+                InteractiveBtnUp = true;
+        }
         private void OnSkillBtnDown(bool flag)
         {
             SkillBtnDown = flag;
@@ -113,7 +121,7 @@ namespace Demo
             RightBtnHeld = false;
             JumpBtnDown = false;
             InteractiveBtnDown = false;
-            InteractiveBtnHeld = false;
+            InteractiveBtnUp = true;
             SkillBtnDown = false;
             SkillBtnHeld = false;
         }

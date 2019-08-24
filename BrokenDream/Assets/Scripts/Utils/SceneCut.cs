@@ -11,7 +11,7 @@ namespace Demo
         {
             scene = SceneManager.GetActiveScene();
             string curSceneName = scene.name;
-            if (curSceneName == "Level-1-1" || curSceneName == "Level-1-2" || curSceneName == "Level-1-3")
+            if (curSceneName == "Level-1")
             {
                 EventCenter.Braodcast<bool>(EventType.FrezeeAttack, true);
             }

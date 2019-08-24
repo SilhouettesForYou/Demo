@@ -12,6 +12,7 @@ namespace Demo
         RunRight,
         Jump,
         Interactive,
+        InteractiveUp,
         Skill,
         Push,
         CupBlowUp,
@@ -21,7 +22,12 @@ namespace Demo
         Dive,
         FrezeeAll,
         FrezeeAttack,
-        FocusOn
+        TurnWaterFaucetOn,
+        TurnWaterFaucetOff,
+        WaterLeak,
+        FocusOn,
+        Facing,
+        DivingInPool
     }
 
 

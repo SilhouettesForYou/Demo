@@ -10,7 +10,6 @@ namespace Demo
 
         private bool focusOnPankapu = true;
         private bool focusOnAn = false;
-        private bool focusOnPool = false;
 
         private Transform an;
         private Transform pankapu;

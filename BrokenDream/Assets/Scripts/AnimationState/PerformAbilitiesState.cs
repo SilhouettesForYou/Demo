@@ -17,8 +17,8 @@ namespace Demo
             }
         }
 
-        private float close = 1.0f;
-        private float far = 2.5f;
+        private float close = 0.25f;
+        private float far = 0.5f;
 
         private GameObject frozenEffect;
         private Transform end1;
